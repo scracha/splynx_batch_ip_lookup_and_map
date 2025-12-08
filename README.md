@@ -1,4 +1,4 @@
-Reads a list of IP addresses, performs a fast lookup stored in the server memory and then offers CSV, KML export.
+Accepts a list of IP addresses, performs a fast Splynx lookup, displays them on a Google Map with options for CSV and KmL export.
 
 Utilises Splynx Fast Lookup with a few more additional fields in splynx_exporter_cli.php https://github.com/scracha/splynx-fast-lookup
 
