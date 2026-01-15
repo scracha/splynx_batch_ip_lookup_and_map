@@ -30,6 +30,7 @@ class SplynxApiClient
     {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
+        $curlErrno = curl_errno($ch);
         curl_close($ch);
         
         // This is a global used in CLI scripts to suppress output
@@ -37,7 +38,7 @@ class SplynxApiClient
         $shouldEcho = !isset($isSilent) || !$isSilent;
 
         if ($response === false) {
-            $errorMsg = "cURL Error for {$method} {$endpoint}: {$curlError}";
+            $errorMsg = "cURL Error for {$method} {$endpoint}: [{$curlErrno}] {$curlError}";
             error_log($errorMsg);
             if ($shouldEcho) { echo "ERROR: {$errorMsg}\n"; }
             return false;
@@ -46,13 +47,14 @@ class SplynxApiClient
         $responseData = json_decode($response, true);
         
         if ($httpCode >= 200 && $httpCode < 300) {
+            error_log("SUCCESS: {$method} {$endpoint} returned HTTP {$httpCode}");
             return $responseData;
         }
 
         // Log API Errors
-        $errorMsg = "API Request Error ({$method}): Endpoint: {$endpoint}, HTTP Code: {$httpCode}, cURL Error: {$curlError}. Response: " . print_r($responseData, true);
+        $errorMsg = "API Request Error ({$method}): Endpoint: {$endpoint}, HTTP Code: {$httpCode}, Response: " . substr($response, 0, 500);
         error_log($errorMsg);
-        if ($shouldEcho) { echo "ERROR: API Request failed with HTTP {$httpCode}. See error log.\n"; }
+        if ($shouldEcho) { echo "ERROR: API Request failed with HTTP {$httpCode}. Response: " . substr($response, 0, 200) . "\n"; }
 
         // Return the error response array for caller to inspect (especially 422 validation errors)
         return $responseData;
@@ -96,6 +98,10 @@ class SplynxApiClient
     public function post($endpoint, $data)
     {
         $url = $this->apiUrl . '/' . ltrim($endpoint, '/');
+        
+        // Debug logging
+        error_log("DEBUG: Attempting POST to: $url");
+        error_log("DEBUG: Payload: " . json_encode($data));
 
         $headers = [
             'Authorization: Basic ' . base64_encode($this->apiKey . ':' . $this->apiSecret),
@@ -109,6 +115,10 @@ class SplynxApiClient
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 
         $response = curl_exec($ch);
         return $this->handleResponse($ch, $response, $endpoint, 'POST');
