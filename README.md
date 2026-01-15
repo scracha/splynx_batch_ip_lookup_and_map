@@ -6,4 +6,6 @@ Updated 15/1/26 to allow mass emailing / SMS of customers & IP address ranges
 
 Please note function isValidNZMobile($phone) within message_customers.php - checks for valid NZ mobile number.  You will have to change this for other countries.  
 
-![Alt text](/splynx_batch_lookup.jpg?raw=true "splynx_batch_lookup.jpg")
+![Alt text](/splynx_batch_lookup.jpg?raw=true "splynx_batch_lookup1.jpg")
+
+![Alt text](/splynx_batch_lookup.jpg?raw=true "splynx_batch_lookup1.jpg")
